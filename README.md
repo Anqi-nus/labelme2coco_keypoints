@@ -3,6 +3,7 @@ Convert labelme format keypoints .json to MSCOCO format keypoints for human dete
 
 Install labelme before running the script.  
 
+<pre>
 Directory  
 ...  
 |   ... labelme2coco_list.py   
@@ -18,5 +19,6 @@ Directory
 |           ... val2017  
 |               ...  
 |               ...  
-  
+<pre>
+
 reference https://github.com/m5823779/labelme2coco_keypoint/blob/master/labelme2coco.py  
