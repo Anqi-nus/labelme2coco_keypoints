@@ -19,6 +19,6 @@ Directory
 |           ... val2017  
 |               ...  
 |               ...  
-<pre>  
+</pre>
 
 reference https://github.com/m5823779/labelme2coco_keypoint/blob/master/labelme2coco.py  
