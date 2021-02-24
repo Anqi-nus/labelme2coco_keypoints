@@ -26,15 +26,14 @@ labels = ["nose", #1
                 "right_knee", #15
                 "left_ankle", #16
                 "right_ankle"] #17
-global img_id = 0
-global ann_id = 0
+
 class Lableme2CoCo:
     def __init__(self):
         self.images = []
         self.annotations = []
         self.categories = []
-        #self.img_id = img_id
-        #self.ann_id = ann_id
+        self.img_id = 0
+        self.ann_id = 0
 
     def save_coco_json(self, instance, save_path):
         json.dump(instance, open(save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
@@ -95,8 +94,8 @@ class Lableme2CoCo:
                     
                 # annotate all other information for this person
                 annotation = {}
-                annotation['id'] = ann_id
-                annotation['image_id'] = img_id
+                annotation['id'] = self.ann_id
+                annotation['image_id'] = self.img_id
                 annotation['category_id'] = 1
                 annotation['iscrowd'] = 0
                 annotation['num_keypoints'] = num_keypoints
@@ -104,10 +103,10 @@ class Lableme2CoCo:
                 # add person annotation to image annotation
                 print("Annotated data: ", annotation)
                 self.annotations.append(annotation) 
-                ann_id += 1
+                self.ann_id += 1
                 
             # next image
-            img_id += 1
+            self.img_id += 1
         
         # store to output .json instance
         instance['annotations'] = self.annotations
@@ -221,7 +220,7 @@ class Lableme2CoCo:
         img_x = utils.img_b64_to_arr(obj['imageData'])
         image["height"] = img_x.shape[0]
         image["width"] = img_x.shape[1]
-        image['id'] = img_id
+        image['id'] = self.img_id
         image['file_name'] = os.path.basename(path).replace(".json", ".jpg")
         return image
 
@@ -248,8 +247,8 @@ if __name__ == '__main__':
     val_instance = val.to_coco(val_path)
     
     # save to file path
-    train_save_path = "./converted/coco/annotations/person_keypoints_train2017.json"
-    val_save_path = "./converted/coco/annotations/person_keypoints_val2017.json"
+    train_save_path = "./converted/mydata/annotations/person_keypoints_train2017.json"
+    val_save_path = "./converted/mydata/annotations/person_keypoints_val2017.json"
     json.dump(train_instance, open(train_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
     json.dump(val_instance, open(val_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
         
