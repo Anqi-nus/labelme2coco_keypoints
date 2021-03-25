@@ -135,83 +135,27 @@ class Lableme2CoCo:
                 "right_knee",
                 "left_ankle",
                 "right_ankle"]
+
             category['skeleton'] = [
-                [
-                    16,
-                    14
-                ],
-                [
-                    14,
-                    12
-                ],
-                [
-                    17,
-                    15
-                ],
-                [
-                    15,
-                    13
-                ],
-                [
-                    12,
-                    13
-                ],
-                [
-                    6,
-                    12
-                ],
-                [
-                    7,
-                    13
-                ],
-                [
-                    6,
-                    7
-                ],
-                [
-                    6,
-                    8
-                ],
-                [
-                    7,
-                    9
-                ],
-                [
-                    8,
-                    10
-                ],
-                [
-                    9,
-                    11
-                ],
-                [
-                    2,
-                    3
-                ],
-                [
-                    1,
-                    2
-                ],
-                [
-                    1,
-                    3
-                ],
-                [
-                    2,
-                    4
-                ],
-                [
-                    3,
-                    5
-                ],
-                [
-                    4,
-                    6
-                ],
-                [
-                    5,
-                    7
-                ]
+                [16,14],
+                [14,12],
+                [17,15],
+                [15,13],
+                [12,13],
+                [6,12],
+                [7,13],
+                [6,7],
+                [6,8],
+                [7,9],
+                [8,10],
+                [9,11],
+                [2,3],
+                [1,2],
+                [1,3],
+                [2,4],
+                [3,5],
+                [4,6],
+                [5,7]
             ]
             self.categories.append(category)
 
@@ -232,24 +176,23 @@ class Lableme2CoCo:
 
 if __name__ == '__main__':
     print("---------------------------------")
-    image_path = "./annotated/"
-    saved_coco_path = "./annotated/"
-    
-    json_list_path = glob.glob(image_path + "/*.json")
-    train_path, val_path = train_test_split(json_list_path, test_size=0.2)
-    print(train_path)
-    print(val_path)
-    
     train = Lableme2CoCo()
-    train_instance = train.to_coco(train_path)
-    
     val = Lableme2CoCo()
-    val_instance = val.to_coco(val_path)
-    
-    # save to file path
-    train_save_path = "./converted/mydata/annotations/person_keypoints_train2017.json"
-    val_save_path = "./converted/mydata/annotations/person_keypoints_val2017.json"
-    json.dump(train_instance, open(train_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-    json.dump(val_instance, open(val_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-        
-        
+
+    # directories of json files stored
+    folders = ["CMN", "CSB", "CSN", "CMB",
+               "SMN", "SSB", "SSN", "SMB"]
+
+    # loop through the directories and start converting
+    for folder in folders:
+        print("Saving in ",folder)
+        json_path = os.path.join("./annotated/" + folder)
+        json_list_path = glob.glob(json_path + "/*.json")
+        train_path, val_path = train_test_split(json_list_path, test_size=0.2)
+        train_instance = train.to_coco(train_path)
+        val_instance = val.to_coco(val_path)
+        train_save_path = "./converted/base_dataset/train/train_"+folder+".json"
+        val_save_path = "./converted/base_dataset/val/val_"+folder+".json"
+        json.dump(train_instance, open(train_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+        json.dump(val_instance, open(val_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+
