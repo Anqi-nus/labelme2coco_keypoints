@@ -16,15 +16,15 @@ Directory
 ...  
 |   ... labelme2coco_list.py   
 |   ... annotated (directory to store raw annotated labelme .json files)   
-|   ... mydata (directory to store generated COCO format .json and images)    
+|   ... converted_folder (directory to store generated COCO format .json and images)    
 |       ... annotations  
-|           ... person_keypoints_train2017.json  
-|           ... person_keypoints_val2017.json  
+|           ... person_keypoints_train.json  
+|           ... person_keypoints_val.json  
 |       ... images  
-|           ... train2017  
+|           ... train  
 |               ...  
 |               ...  
-|           ... val2017  
+|           ... val  
 |               ...  
 |               ...  
 </pre>
