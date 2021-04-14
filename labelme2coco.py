@@ -38,7 +38,7 @@ class Lableme2CoCo:
     def save_coco_json(self, instance, save_path):
         json.dump(instance, open(save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
-    def to_coco(self, labelme_path):
+    def to_coco(self, json_path_list):
         self._init_categories()
         instance = {}
         instance['info'] = {'description': 'Pose Estimation Dataset', 
@@ -49,57 +49,66 @@ class Lableme2CoCo:
         instance['license'] = ['Conex']
         instance['images'] = self.images
         instance['categories'] = self.categories
-
         
-        #for json_path in (json_path_list):
-        obj = self.read_jsonfile(labelme_path)
-        self.images.append(self._image(obj, labelme_path))
-        shapes = obj['shapes']
-            
-            # check number of people in the image
-        num_person = 0
-        for shape in shapes:
-            if shape['group_id'] > num_person:
-                num_person = shape['group_id']
-        
-        # do annotation for each person
-        for person in range(num_person+1):
-            person_annotation = []
-            keypoints =  [None] * 18
-            
-            for shape in shapes:
-                if shape['group_id'] != person:
-                    # group id also starts with 0, i.e. person 0, person 1, ...
-                    continue
-                # record body parts for person, part_index max = 17
-                part_index = int(shape['label']) 
-                keypoints[part_index] = shape['points'][0]
-
-            num_keypoints = 0
-            for keypoint_i in range(1, 18): 
-                # store keypoint for person in annotation
-                if keypoints[keypoint_i] == None:
-                    person_annotation.extend([0, 0, 0])
-                else:
-                    person_annotation.extend([keypoints[keypoint_i][0], keypoints[keypoint_i][1], 2])
-                    num_keypoints += 1                    
+        for json_path in (json_path_list):
+            obj = self.read_jsonfile(json_path)
+            self.images.append(self._image(obj, json_path))
+            shapes = obj['shapes']
                 
-            # annotate all other information for this person
-            annotation = {}
-            self.ann_id += 1
-            annotation['id'] = self.ann_id
-            annotation['image_id'] = self.img_id
-            annotation['category_id'] = 1
-            annotation['iscrowd'] = 0
+            # check number of people in the image
+            num_person = 0
+            isIndividual = False
+            for shape in shapes:
+                if shape['group_id'] == None:
+                    isIndividual = True
+                    continue
+                if shape['group_id'] > num_person:
+                    num_person = shape['group_id']
             
-            annotation['num_keypoints'] = num_keypoints
-            annotation['keypoints'] = person_annotation
-            
-            # add person annotation to image annotation
-            self.annotations.append(annotation)
+            print("Start annotate for img: ", json_path, "There are", num_person + 1, "people in total")
+            # do annotation for each person
+            for person in range(num_person + 1):
+                print("Person", person + 1, "...")
+                # start with person = 0, create annotation dict for each person
+                person_annotation = []
+                keypoints =  [None] * 18
+                
+                for shape in shapes:
+                    # iterate through keypoints, add to dict if belongs to person
+                    if shape['group_id'] != person and isIndividual == False:
+                        continue
+                    # get the body part this keypoint represents
+                    part_index = int(shape['label']) 
+                    # store the keypoint data to keypoints[] at its respective index
+                    keypoints[part_index] = shape['points'][0]
+
+                # edit the keypoint data to fit COCO annotation format
+                num_keypoints = 0
+                for keypoint_i in range(1, 18): 
+                    # store keypoint for person in annotation
+                    if keypoints[keypoint_i] == None:
+                        person_annotation.extend([0, 0, 0])
+                    else:
+                        person_annotation.extend([keypoints[keypoint_i][0], keypoints[keypoint_i][1], 2])
+                        num_keypoints += 1                    
+                    
+                # annotate all other information for this person
+                annotation = {}
+                annotation['id'] = self.ann_id
+                annotation['image_id'] = self.img_id
+                annotation['category_id'] = 1
+                annotation['iscrowd'] = 0
+                annotation['num_keypoints'] = num_keypoints
+                annotation['keypoints'] = person_annotation
+                # add person annotation to image annotation
+                print("Annotated data: ", annotation)
+                self.annotations.append(annotation) 
+                self.ann_id += 1
                 
             # next image
-            # self.img_id += 1
+            self.img_id += 1
+        
+        # store to output .json instance
         instance['annotations'] = self.annotations
         return instance
         
@@ -126,89 +135,32 @@ class Lableme2CoCo:
                 "right_knee",
                 "left_ankle",
                 "right_ankle"]
+
             category['skeleton'] = [
-                [
-                    16,
-                    14
-                ],
-                [
-                    14,
-                    12
-                ],
-                [
-                    17,
-                    15
-                ],
-                [
-                    15,
-                    13
-                ],
-                [
-                    12,
-                    13
-                ],
-                [
-                    6,
-                    12
-                ],
-                [
-                    7,
-                    13
-                ],
-                [
-                    6,
-                    7
-                ],
-                [
-                    6,
-                    8
-                ],
-                [
-                    7,
-                    9
-                ],
-                [
-                    8,
-                    10
-                ],
-                [
-                    9,
-                    11
-                ],
-                [
-                    2,
-                    3
-                ],
-                [
-                    1,
-                    2
-                ],
-                [
-                    1,
-                    3
-                ],
-                [
-                    2,
-                    4
-                ],
-                [
-                    3,
-                    5
-                ],
-                [
-                    4,
-                    6
-                ],
-                [
-                    5,
-                    7
-                ]
+                [16,14],
+                [14,12],
+                [17,15],
+                [15,13],
+                [12,13],
+                [6,12],
+                [7,13],
+                [6,7],
+                [6,8],
+                [7,9],
+                [8,10],
+                [9,11],
+                [2,3],
+                [1,2],
+                [1,3],
+                [2,4],
+                [3,5],
+                [4,6],
+                [5,7]
             ]
             self.categories.append(category)
 
     def _image(self, obj, path):
         image = {}
-
         img_x = utils.img_b64_to_arr(obj['imageData'])
         image["height"] = img_x.shape[0]
         image["width"] = img_x.shape[1]
@@ -217,27 +169,35 @@ class Lableme2CoCo:
         return image
 
 
-    # 读取json文件，返回一个json对象
+    # read json file, return json object
     def read_jsonfile(self, path):
         with open(path, "r", encoding='utf-8') as f:
             return json.load(f)
 
-    def _get_box(self, points):
-        min_x = min_y = np.inf
-        max_x = max_y = 0
-        for x, y in points:
-            min_x = min(min_x, x)
-            min_y = min(min_y, y)
-            max_x = max(max_x, x)
-            max_y = max(max_y, y)
-        return [min_x, min_y, max_x - min_x, max_y - min_y]
-
-
 if __name__ == '__main__':
-    labelme_path = "./frame_10001.json"
-    test = Lableme2CoCo()
-    train_instance = test.to_coco(labelme_path)
-    
-    json.dump(train_instance, open('./keypoints_train.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-        
-        
+    print("---------------------------------")
+    train = Lableme2CoCo()
+    val = Lableme2CoCo()
+
+    # name of the folders containing labelme format json files
+    folders = ["CMN", "CSB", "CSN", "CMB",
+               "SMN", "SSB", "SSN", "SMB"]
+
+    # loop through the directories and start converting
+    for folder in folders:
+        print("Saving in ", folder)
+        # preprocess data path
+        json_path = os.path.join("./" + folder)  # path to labelme json folder
+        json_list_path = glob.glob(json_path + "/*.json")  # labelme json files in folder
+        train_path, val_path = train_test_split(json_list_path, test_size=0.3)  # split to train and test data set
+        train_save_path = "./train_" + folder + ".json"  # path to save COCO json files (train)
+        val_save_path = "./val_" + folder + ".json"  # path to save COCO json files (validation)
+
+        # convert to COCO format
+        train_instance = train.to_coco(train_path)
+        val_instance = val.to_coco(val_path)
+
+        # save the converted COCO json files
+        json.dump(train_instance, open(train_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+        json.dump(val_instance, open(val_save_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+
